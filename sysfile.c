@@ -69,24 +69,25 @@ sys_dup(void)
 int
 sys_dup2(void)
 {
-  struct file *f;
-  int fd;
-  //Pasos a seguir:
-  //
-  //Obtengo 2 parámetros: oldfd y newfd
-  //Para recuperar: argfd(oldfd)
-  //Para el newfd, usar argint(newfd) y hacer comprobaciones a mano
-  //2. oldfd == newfd? revisar man
-  //3. si abierto(newfd) -> lo cierra (usar close())
-  //4. duplicar entrada oldfd en newfd (filedup)
-  //return newfd
+  /*struct file *oldf;
+  int newfd;
 
-  if(argfd(0, 0, &f) < 0)
+  if(argfd(0, 0, &oldf) < 0) // Si el descriptor antiguo no es válido, error
     return -1;
-  if((fd=fdalloc(f)) < 0)
+  if(argint(1, &newfd) < 0)
     return -1;
-  filedup(f);
-  return fd;
+  if(newfd < 0 || newfd >= NOFILE)
+    return -1;
+  // Según "man dup2": If oldfd is a valid file descriptor, and newfd has the same 
+  // value as oldfd, then dup2() does nothing, and returns newfd.
+  if(oldf == (myproc()->ofile[newfd]))
+    return newfd;
+  if(myproc()->ofile[newfd] != 0)
+    myproc()->ofile[newfd] = 0;
+
+  myproc()->ofile[newfd] = oldf;
+  filedup(oldf);
+  return newfd;*/
 }
 
 int
