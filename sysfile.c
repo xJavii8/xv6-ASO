@@ -69,25 +69,20 @@ sys_dup(void)
 int
 sys_dup2(void)
 {
-  /*struct file *oldf;
+  struct file *oldf;
   int newfd;
 
   if(argfd(0, 0, &oldf) < 0) // Si el descriptor antiguo no es válido, error
     return -1;
-  if(argint(1, &newfd) < 0)
+  if(argint(1, &newfd) < 0 || newfd < 0 || newfd >= NOFILE) // El descriptor nuevo no puede tener un fd incorrecto, ni debe ser superior a NOFILE
     return -1;
-  if(newfd < 0 || newfd >= NOFILE)
-    return -1;
-  // Según "man dup2": If oldfd is a valid file descriptor, and newfd has the same 
-  // value as oldfd, then dup2() does nothing, and returns newfd.
-  if(oldf == (myproc()->ofile[newfd]))
-    return newfd;
-  if(myproc()->ofile[newfd] != 0)
-    myproc()->ofile[newfd] = 0;
-
+  if(myproc()->ofile[newfd] == oldf) // Según "man dup2": If oldfd is a valid file descriptor, and newfd has the same 
+    return newfd;                      // value as oldfd, then dup2() does nothing, and returns newfd.
+  if(myproc()->ofile[newfd] > 0) // Si el nuevo descriptor está abierto, lo cerramos silenciosamente
+    fileclose(myproc()->ofile[newfd]);
   myproc()->ofile[newfd] = oldf;
   filedup(oldf);
-  return newfd;*/
+  return newfd;
 }
 
 int
