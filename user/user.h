@@ -3,8 +3,8 @@ struct rtcdate;
 
 // system calls
 extern int fork(void);
-extern int exit(void) __attribute__((noreturn));
-extern int wait(void);
+extern int exit(int) __attribute__((noreturn)); // Argumentos adaptados al ejercicio
+extern int wait(int*); // Argumentos adaptados al ejercicio
 extern int pipe(int*);
 extern int write(int, const void*, int);
 extern int read(int, void*, int);
@@ -41,3 +41,7 @@ extern void free(void*);
 extern int atoi(const char*);
 
 #define NULL 0
+#define WIFEXITED(status)    (((status) & 0x7f) == 0)
+#define WEXITSTATUS(status)  (((status) & 0xff00) >> 8)
+#define WIFSIGNALED(status)  (((status) & 0x7f) != 0)
+#define WEXITTRAP(status)    (((status) & 0x7f) - 1)
