@@ -233,8 +233,11 @@ exit(int status)
 
   if(curproc == initproc)
     panic("init exiting");
-
-  curproc->status = status; // Asignamos el estado del proceso
+    
+  if(curproc->killed)
+    curproc->status = status + 1;
+  else
+    curproc->status = status << 8;
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
@@ -301,7 +304,7 @@ wait(int *status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-	*status = p->status; // Queremos que el estado sea el mismo que en exit(status)
+	      *status = p->status; // Queremos que el estado sea el mismo que en exit(status)
         return pid;
       }
     }
