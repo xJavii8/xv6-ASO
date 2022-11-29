@@ -60,9 +60,17 @@ sys_sbrk(void)
   if(argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  //if(growproc(n) < 0)
-    //return -1;
+  if(n > 0) {
+    if((myproc()->sz + n) >= KERNBASE)
+      return -1;
+  } else if(n < 0) {
+    if((myproc()->sz + n) < PGROUNDUP(myproc()->tf->esp))
+      return -1;
+    deallocuvm(myproc()->pgdir, addr, myproc()->sz + n);
+  }
+
   myproc()->sz += n;
+
   return addr;
 }
 

@@ -78,9 +78,11 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-
-  //PAGEBREAK: 13
-  default:
+  case T_GPFLT:
+    cprintf("General Page Fault noseque");
+    myproc()->killed = 1;
+    break;
+  case T_PGFLT:
     if(myproc() == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
@@ -88,17 +90,105 @@ trap(struct trapframe *tf)
       panic("trap");
     }
 
+    // In user space, assume process misbehaved.
+    cprintf("pid %d %s: trap %d err %d on cpu %d "
+            "eip 0x%x addr 0x%x--kill proc\n",
+            myproc()->pid, myproc()->name, tf->trapno,
+            tf->err, cpuid(), tf->eip, rcr2());
+
     // Tratar lazy allocation
+
+    if(PGROUNDDOWN(rcr2()) == myproc()->sz) {
+      cprintf("Mapeo en sz\n");
+      myproc()->killed = 1;
+      return;
+    }
+
+    if(PGROUNDDOWN(rcr2()) == myproc()->gp) {
+      cprintf("Mapeo en pagina de guarda\n");
+      myproc()->killed = 1;
+      return;
+    }
+
+    if(PGROUNDDOWN(rcr2()) >= KERNBASE) {
+      cprintf("Mapeo en kernel\n");
+      myproc()->killed = 1;
+      return;
+    }
+    
+    char* mem = kalloc();
+
+    memset(mem, 0, PGSIZE);
+
+    if(mem == 0) {
+      cprintf("allocvm out of memory\n");
+      myproc()->killed = 1;
+      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
+      return;
+    }
+
+    if(mappages(myproc()->pgdir, (char*)PGROUNDDOWN(rcr2()), PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
+      cprintf("allocvm out of memory (2)\n");
+      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
+      kfree(mem);
+      return;
+    }
+    break;
+
+  //PAGEBREAK: 13
+  default:
+    /*if(myproc() == 0 || (tf->cs&3) == 0){
+      // In kernel, it must be our mistake.
+      cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
+              tf->trapno, cpuid(), tf->eip, rcr2());
+      panic("trap");
+    }
 
     // In user space, assume process misbehaved.
     cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             myproc()->pid, myproc()->name, tf->trapno,
             tf->err, cpuid(), tf->eip, rcr2());
-    // Dejo aquí por debug, pero después hay que poner encima del cprintf
-    char * mem = kalloc();
-    mappages(myproc()->pgdir, (char*)PGROUNDDOWN(rcr2()), PGSIZE, V2P(mem), PTE_W|PTE_U);
-    //myproc()->killed = 1;
+
+    // Tratar lazy allocation
+
+    if(PGROUNDDOWN(rcr2()) == myproc()->sz) {
+      cprintf("Mapeo en sz\n");
+      myproc()->killed = 1;
+      return;
+    }
+
+    if(PGROUNDDOWN(rcr2()) == myproc()->gp) {
+      cprintf("Mapeo en pagina de guarda\n");
+      myproc()->killed = 1;
+      return;
+    }
+
+    if(PGROUNDDOWN(rcr2()) >= KERNBASE) {
+      cprintf("Mapeo en kernel\n");
+      myproc()->killed = 1;
+      return;
+    }
+    
+    char* mem = kalloc();
+
+    memset(mem, 0, PGSIZE);
+
+    if(mem == 0) {
+      cprintf("allocvm out of memory\n");
+      myproc()->killed = 1;
+      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
+      return;
+    }
+
+    if(mappages(myproc()->pgdir, (char*)PGROUNDDOWN(rcr2()), PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
+      cprintf("allocvm out of memory (2)\n");
+      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
+      kfree(mem);
+      return;
+    }*/
+    
+    myproc()->killed = 1;
   }
 
   // Force process exit if it has been killed and is in user space.
