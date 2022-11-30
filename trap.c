@@ -78,116 +78,80 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-  case T_GPFLT:
-    cprintf("General Page Fault noseque");
-    myproc()->killed = 1;
-    break;
   case T_PGFLT:
+    uint addr = PGROUNDDOWN(rcr2());
+
+    if(addr == myproc()->sz) {
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
+              "eip 0x%x addr 0x%x--map in sz\n",
+              myproc()->pid, myproc()->name, tf->trapno,
+              tf->err, cpuid(), tf->eip, rcr2());
+      myproc()->killed = 1;
+      break;
+    }
+
+    if(tf->err & PTE_P) {
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
+              "eip 0x%x addr 0x%x--permission denied\n",
+              myproc()->pid, myproc()->name, tf->trapno,
+              tf->err, cpuid(), tf->eip, rcr2());
+      myproc()->killed=1;
+      break;
+    }
+
+    if(addr == myproc()->gp) {
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
+              "eip 0x%x addr 0x%x--map in guardpage\n",
+              myproc()->pid, myproc()->name, tf->trapno,
+              tf->err, cpuid(), tf->eip, rcr2());
+      myproc()->killed = 1;
+      break;
+    }
+
+    if(addr >= KERNBASE) {
+      cprintf("pid %d %s: trap %d err %d on cpu %d "
+              "eip 0x%x addr 0x%x--map in kernel\n",
+              myproc()->pid, myproc()->name, tf->trapno,
+              tf->err, cpuid(), tf->eip, rcr2());
+      myproc()->killed = 1;
+      break;
+    }
+    
+    char* mem = kalloc();
+
+    if(mem == 0) {
+      cprintf("out of memory\n");
+      myproc()->killed = 1;
+      break;
+    }
+
+    memset(mem, 0, PGSIZE);
+
+    if(mappages(myproc()->pgdir, (char*) addr, PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
+      cprintf("out of memory (2)\n");
+      kfree(mem);
+    }
+
+    cprintf("pid %d %s: trap %d err %d on cpu %d "
+            "eip 0x%x addr 0x%x--memmory assigned\n",
+            myproc()->pid, myproc()->name, tf->trapno,
+            tf->err, cpuid(), tf->eip, rcr2());
+
+    break;
+
+  //PAGEBREAK: 13
+  default:
     if(myproc() == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
               tf->trapno, cpuid(), tf->eip, rcr2());
       panic("trap");
     }
-
     // In user space, assume process misbehaved.
     cprintf("pid %d %s: trap %d err %d on cpu %d "
             "eip 0x%x addr 0x%x--kill proc\n",
             myproc()->pid, myproc()->name, tf->trapno,
             tf->err, cpuid(), tf->eip, rcr2());
-
-    // Tratar lazy allocation
-
-    if(PGROUNDDOWN(rcr2()) == myproc()->sz) {
-      cprintf("Mapeo en sz\n");
-      myproc()->killed = 1;
-      return;
-    }
-
-    if(PGROUNDDOWN(rcr2()) == myproc()->gp) {
-      cprintf("Mapeo en pagina de guarda\n");
-      myproc()->killed = 1;
-      return;
-    }
-
-    if(PGROUNDDOWN(rcr2()) >= KERNBASE) {
-      cprintf("Mapeo en kernel\n");
-      myproc()->killed = 1;
-      return;
-    }
-    
-    char* mem = kalloc();
-
-    memset(mem, 0, PGSIZE);
-
-    if(mem == 0) {
-      cprintf("allocvm out of memory\n");
-      myproc()->killed = 1;
-      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
-      return;
-    }
-
-    if(mappages(myproc()->pgdir, (char*)PGROUNDDOWN(rcr2()), PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
-      cprintf("allocvm out of memory (2)\n");
-      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
-      kfree(mem);
-      return;
-    }
-    break;
-
-  //PAGEBREAK: 13
-  default:
-    /*if(myproc() == 0 || (tf->cs&3) == 0){
-      // In kernel, it must be our mistake.
-      cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
-              tf->trapno, cpuid(), tf->eip, rcr2());
-      panic("trap");
-    }
-
-    // In user space, assume process misbehaved.
-    cprintf("pid %d %s: trap %d err %d on cpu %d "
-            "eip 0x%x addr 0x%x--kill proc\n",
-            myproc()->pid, myproc()->name, tf->trapno,
-            tf->err, cpuid(), tf->eip, rcr2());
-
-    // Tratar lazy allocation
-
-    if(PGROUNDDOWN(rcr2()) == myproc()->sz) {
-      cprintf("Mapeo en sz\n");
-      myproc()->killed = 1;
-      return;
-    }
-
-    if(PGROUNDDOWN(rcr2()) == myproc()->gp) {
-      cprintf("Mapeo en pagina de guarda\n");
-      myproc()->killed = 1;
-      return;
-    }
-
-    if(PGROUNDDOWN(rcr2()) >= KERNBASE) {
-      cprintf("Mapeo en kernel\n");
-      myproc()->killed = 1;
-      return;
-    }
-    
-    char* mem = kalloc();
-
-    memset(mem, 0, PGSIZE);
-
-    if(mem == 0) {
-      cprintf("allocvm out of memory\n");
-      myproc()->killed = 1;
-      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
-      return;
-    }
-
-    if(mappages(myproc()->pgdir, (char*)PGROUNDDOWN(rcr2()), PGSIZE, V2P(mem), PTE_W|PTE_U) < 0) {
-      cprintf("allocvm out of memory (2)\n");
-      deallocuvm(myproc()->pgdir, myproc()->sz, myproc()->tf->eax);
-      kfree(mem);
-      return;
-    }*/
-    
     myproc()->killed = 1;
   }
 
