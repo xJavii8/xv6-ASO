@@ -21,7 +21,7 @@ sys_exit(void)
   if(argint(0, &status) < 0) // Obtenemos el estado
     return -1;
 
-  exit(status); // Lo pasamos por parámetro
+  exit(status << 8); // Lo pasamos por parámetro
   return 0;  // not reached
 }
 

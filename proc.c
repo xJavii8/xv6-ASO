@@ -234,10 +234,7 @@ exit(int status)
   if(curproc == initproc)
     panic("init exiting");
     
-  if(curproc->killed)
-    curproc->status = status + 1;
-  else
-    curproc->status = status << 8;
+  curproc->status = status;
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
