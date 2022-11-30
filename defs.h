@@ -107,6 +107,8 @@ int             cpuid(void);
 void            exit(int); // Argumentos adaptados al ejercicio
 int             fork(void);
 int             growproc(int);
+enum proc_prio  getprio(int);
+int             setprio(int, enum proc_prio);
 int             kill(int);
 struct cpu*     mycpu(void);
 struct proc*    myproc();

@@ -25,6 +25,8 @@ extern int sleep(int);
 extern int uptime(void);
 extern int date(struct rtcdate*);
 extern int dup2(int, int);
+extern enum proc_prio getprio(int);
+extern int setprio(int, enum proc_prio);
 
 // ulib.c
 extern int stat(const char*, struct stat*);

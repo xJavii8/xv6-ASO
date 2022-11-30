@@ -199,6 +199,7 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->priority = curproc->priority;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -328,7 +329,7 @@ wait(int *status)
 void
 scheduler(void)
 {
-  struct proc *p;
+  struct proc *p, *selectHP, *hPP;
   struct cpu *c = mycpu();
   c->proc = 0;
 
@@ -341,6 +342,18 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+
+      hPP = p;
+
+      for(selectHP = ptable.proc; selectHP < &ptable.proc[NPROC]; selectHP++) {
+        if(selectHP->state != RUNNABLE)
+          continue;
+
+        if(selectHP->priority > hPP->priority)
+          hPP = selectHP;
+      }
+
+      p = hPP;
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -537,4 +550,34 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+enum proc_prio
+getprio(int pid)
+{
+  struct proc *p;
+  int priority;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->pid == pid) {
+      priority = p->priority;
+      return priority;
+    }
+  }
+  return -1;
+}
+
+int
+setprio(int pid, enum proc_prio priority)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->pid == pid) {
+      p->priority = priority;
+    }
+  }
+  release(&ptable.lock);
+
+  return 0;
 }
