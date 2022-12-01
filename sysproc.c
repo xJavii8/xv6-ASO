@@ -119,6 +119,9 @@ sys_uptime(void)
   return xticks;
 }
 
+// Obtenemos la prioridad de un proceso. Si se ha ejecutado
+// correctamente devuelve la prioridad, de lo contrario
+// devuelve -1
 int
 sys_getprio(void)
 {
@@ -134,6 +137,9 @@ sys_getprio(void)
   return priority;
 }
 
+// Asignamos una prioridad a un proceso en concreto.
+// Si devuelve 0 se ha ejecutado correctamente, de lo
+// contrario devuelve -1
 int
 sys_setprio(void)
 {
@@ -146,6 +152,7 @@ sys_setprio(void)
   if(argint(1, &priority) < 0)
     return -1;
 
+  // Casteo necesario, de lo contrario no podemos pasarle la prioridad
   if(setprio(pid, (enum proc_prio) priority) < 0)
     return -1;
   

@@ -107,8 +107,8 @@ int             cpuid(void);
 void            exit(int); // Argumentos adaptados al ejercicio
 int             fork(void);
 int             growproc(int);
-enum proc_prio  getprio(int);
-int             setprio(int, enum proc_prio);
+enum proc_prio  getprio(int); // Función para obtener la prioridad de un proceso
+int             setprio(int, enum proc_prio); // Función para asignar una prioridad a un proceso determinado
 int             kill(int);
 struct cpu*     mycpu(void);
 struct proc*    myproc();

@@ -23,10 +23,10 @@ extern int getpid(void);
 extern char* sbrk(int);
 extern int sleep(int);
 extern int uptime(void);
-extern int date(struct rtcdate*);
-extern int dup2(int, int);
-extern enum proc_prio getprio(int);
-extern int setprio(int, enum proc_prio);
+extern int date(struct rtcdate*); // Nueva syscall
+extern int dup2(int, int); // Nueva syscall
+extern enum proc_prio getprio(int); // Nueva syscall
+extern int setprio(int, enum proc_prio); // Nueva syscall
 
 // ulib.c
 extern int stat(const char*, struct stat*);

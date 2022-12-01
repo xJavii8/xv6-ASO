@@ -68,7 +68,7 @@ exec(char *path, char **argv)
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
 
-  gp = sp - (2 * PGSIZE);
+  gp = sp - (2 * PGSIZE); // La página de guarda es la que hemos puesto arriba como inaccesible
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
@@ -101,7 +101,7 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
-  curproc->gp = gp;
+  curproc->gp = gp; // Asignamos la página de guarda
   curproc->gp = NORM_PRIO;
   switchuvm(curproc);
   freevm(oldpgdir, 1);

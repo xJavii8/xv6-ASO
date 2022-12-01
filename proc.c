@@ -199,7 +199,7 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
-  np->priority = curproc->priority;
+  np->priority = curproc->priority; // El hijo hereda la prioridad del padre
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -235,7 +235,7 @@ exit(int status)
   if(curproc == initproc)
     panic("init exiting");
     
-  curproc->status = status;
+  curproc->status = status; // Asignamos el estado
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
@@ -343,6 +343,8 @@ scheduler(void)
       if(p->state != RUNNABLE)
         continue;
 
+      // Recorremos los procesos para comprobar si hay procesos de mayor prioridad
+      // que el que tenemos actualmente. Si es así, lo cambiamos al de mayor prioridad
       for(selectHP = ptable.proc; selectHP < &ptable.proc[NPROC]; selectHP++) {
         if(selectHP->state != RUNNABLE)
           continue;
@@ -548,20 +550,24 @@ procdump(void)
   }
 }
 
+// Obtenemos la prioridad del proceso deseado
 enum proc_prio
 getprio(int pid)
 {
   struct proc *p;
   int priority;
+
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->pid == pid) {
       priority = p->priority;
       return priority;
     }
   }
+  
   return -1;
 }
 
+// Asignamos la prioridad deseada a un proceso determinado
 int
 setprio(int pid, enum proc_prio priority)
 {

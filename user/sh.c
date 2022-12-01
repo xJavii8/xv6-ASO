@@ -167,6 +167,7 @@ main(void)
     if(fork1() == 0)
       runcmd(parsecmd(buf));
     wait(&status); // Modificamos la llamada para saber el estado que devuelve
+    // Output implementado con las macros de user.h
     if(WIFEXITED(status))
       printf(1, "Output code: %d\n", WEXITSTATUS(status));
     else if(WIFSIGNALED(status))

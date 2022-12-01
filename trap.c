@@ -82,7 +82,7 @@ trap(struct trapframe *tf)
     uint addr = PGROUNDDOWN(rcr2());
 
     // Hacemos varias comprobaciones
-    if(addr == myproc()->sz) {
+    if(addr == myproc()->sz) { // Mapeo en sz
       cprintf("pid %d %s: trap %d err %d on cpu %d "
               "eip 0x%x addr 0x%x--map in sz\n",
               myproc()->pid, myproc()->name, tf->trapno,
@@ -91,7 +91,7 @@ trap(struct trapframe *tf)
       break;
     }
 
-    if(tf->err & PTE_P) {
+    if(tf->err & PTE_P) { // No tenemos acceso a la página a la que se ha intentado acceder
       cprintf("pid %d %s: trap %d err %d on cpu %d "
               "eip 0x%x addr 0x%x--permission denied\n",
               myproc()->pid, myproc()->name, tf->trapno,
@@ -100,7 +100,7 @@ trap(struct trapframe *tf)
       break;
     }
 
-    if(addr == myproc()->gp) {
+    if(addr == myproc()->gp) { // Mapeo en la página de guarda
       cprintf("pid %d %s: trap %d err %d on cpu %d "
               "eip 0x%x addr 0x%x--map in guardpage\n",
               myproc()->pid, myproc()->name, tf->trapno,
@@ -109,7 +109,7 @@ trap(struct trapframe *tf)
       break;
     }
 
-    if(addr >= KERNBASE) {
+    if(addr >= KERNBASE) { // Mapeo en kernel
       cprintf("pid %d %s: trap %d err %d on cpu %d "
               "eip 0x%x addr 0x%x--map in kernel\n",
               myproc()->pid, myproc()->name, tf->trapno,
@@ -118,6 +118,7 @@ trap(struct trapframe *tf)
       break;
     }
     
+    // Si supera todas las comprobaciones, reservamos memoria para la página
     char* mem = kalloc();
 
     if(mem == 0) {
