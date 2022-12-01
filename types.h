@@ -6,6 +6,8 @@ typedef unsigned short ushort;
 typedef unsigned char  uchar;
 typedef uint pde_t;
 
+enum proc_prio { NORM_PRIO, HI_PRIO };
+
 #ifndef NULL
 #define NULL 0
 #endif

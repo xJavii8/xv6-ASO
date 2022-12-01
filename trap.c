@@ -81,6 +81,7 @@ trap(struct trapframe *tf)
   case T_PGFLT:
     uint addr = PGROUNDDOWN(rcr2());
 
+    // Hacemos varias comprobaciones
     if(addr == myproc()->sz) {
       cprintf("pid %d %s: trap %d err %d on cpu %d "
               "eip 0x%x addr 0x%x--map in sz\n",
@@ -133,7 +134,7 @@ trap(struct trapframe *tf)
     }
 
     cprintf("pid %d %s: trap %d err %d on cpu %d "
-            "eip 0x%x addr 0x%x--memmory assigned\n",
+            "eip 0x%x addr 0x%x--memory assigned\n",
             myproc()->pid, myproc()->name, tf->trapno,
             tf->err, cpuid(), tf->eip, rcr2());
 

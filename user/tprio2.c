@@ -1,8 +1,6 @@
 #include "types.h"
 #include "user.h"
 
-enum proc_prio { NORM_PRIO, HI_PRIO };
-
 int
 main(int argc, char *argv[])
 {

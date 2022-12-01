@@ -1,8 +1,6 @@
 #include "types.h"
 #include "user.h"
 
-enum proc_prio { NORM_PRIO, HI_PRIO };
-
 void
 do_calc (char* nombre)
 {
