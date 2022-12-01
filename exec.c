@@ -102,7 +102,7 @@ exec(char *path, char **argv)
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
   curproc->gp = gp; // Asignamos la página de guarda
-  curproc->gp = NORM_PRIO;
+  curproc->priority = NORM_PRIO;
   switchuvm(curproc);
   freevm(oldpgdir, 1);
   return 0;
