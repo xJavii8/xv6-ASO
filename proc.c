@@ -349,8 +349,10 @@ scheduler(void)
         if(selectHP->state != RUNNABLE)
           continue;
 
-        if(selectHP->priority > p->priority)
+        if(selectHP->priority > p->priority) {
           p = selectHP;
+          break;
+        }
       }
 
       // Switch to chosen process.  It is the process's job
