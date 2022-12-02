@@ -325,9 +325,9 @@ copyuvm(pde_t *pgdir, uint sz)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
-      continue; // Ya no necesitamos que la página esté presente
+      continue; // Ya no necesitamos encontrar el puntero a la página dada, saltamos a la siguiente
     if(!(*pte & PTE_P))
-      continue; // Ya no necesitamos que la página esté presente
+      continue; // Ya no necesitamos encontrar el puntero a la página o que el bit esté presente, saltamos a la siguiente
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
