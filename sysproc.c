@@ -128,7 +128,7 @@ sys_getprio(void)
   int pid;
   int priority;
 
-  if(argint(0, &pid) < 0)
+  if(argint(0, &pid) < 0 || pid < 0)
     return -1;
 
   if((priority = getprio(pid)) < 0)
@@ -146,7 +146,7 @@ sys_setprio(void)
   int pid;
   int priority;
 
-  if(argint(0, &pid) < 0)
+  if(argint(0, &pid) < 0 || pid < 0)
     return -1;
 
   if(argint(1, &priority) < 0)

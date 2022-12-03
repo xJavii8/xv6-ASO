@@ -558,9 +558,6 @@ getprio(int pid)
 {
   struct proc *p;
 
-  if(pid < 0)
-    return -1;
-
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->pid == pid) {
       return p->priority;
@@ -576,9 +573,6 @@ setprio(int pid, enum proc_prio priority)
 {
   struct proc *p;
   int asignado = -1;
-
-  if(pid < 0)
-    return -1;
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
